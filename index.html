@@ -217,16 +217,29 @@
             animation-play-state: paused;
             transform: scale(1.1) !important;
         }
+
+        /* 네비게이션 로고 반응형 스타일 */
+        .nav-logo {
+            width: 54px;
+            height: auto;
+            transition: width 0.2s;
+        }
+        @media (min-width: 1024px) {
+            .nav-logo {
+                width: 100px !important;
+                height: auto !important;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="loading-screen">
         <div style="display: flex; flex-direction: column; align-items: center; gap: 24px;">
             <img 
-                src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FTM0lB%2FdJMcaiivdfU%2FAAAAAAAAAAAAAAAAAAAAAIBtCp2d_H35GcKyrIWU0yrsBS53evE1G5EkWcR4REet%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DIS3wBm9uF0mIfLN8Gq3tmuSZuCE%253D" 
+                src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbwhhFd%2FdJMcaiW4vsy%2FAAAAAAAAAAAAAAAAAAAAAC9rW87qpYg1Tb98s9xR7cq5acHIngS-rvLyZz8DoNJW%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DZMdPqSIN%252F8YNTyS1To9%252FYeSwzac%253D" 
                 alt="불향기 로고" 
                 class="loading-logo"
-                style="width: 240px; height: auto;"
+                style="width: 200px; height: auto;"
                 referrerPolicy="no-referrer"
             />
         </div>
@@ -236,12 +249,23 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
         
-        // Framer Motion global check - more robust
-        const motion = (window.Motion && window.Motion.motion) || (window.FramerMotion && window.FramerMotion.motion) || null;
-        const AnimatePresence = (window.Motion && window.Motion.AnimatePresence) || (window.FramerMotion && window.FramerMotion.AnimatePresence) || null;
+        // Framer Motion global check - resilient fallback
+        const _motion = (window.Motion && window.Motion.motion) || (window.FramerMotion && window.FramerMotion.motion) || null;
+        const _AnimatePresence = (window.Motion && window.Motion.AnimatePresence) || (window.FramerMotion && window.FramerMotion.AnimatePresence) || null;
+        const hasMotion = Boolean(_motion && _AnimatePresence);
 
-        if (!motion) {
-            console.error("Framer Motion failed to load. Check CDNs or internet connection.");
+        // If Framer Motion CDN fails, render plain HTML tags instead of crashing.
+        const motion = _motion || {
+            div: (p) => <div {...p} />,
+            span: (p) => <span {...p} />,
+            button: (p) => <button {...p} />,
+            aside: (p) => <aside {...p} />,
+            a: (p) => <a {...p} />,
+        };
+        const AnimatePresence = _AnimatePresence || (({ children }) => <>{children}</>);
+
+        if (!hasMotion) {
+            console.warn("Framer Motion not available. Animations will be disabled.");
         }
 
         // Lucide Icon Component - more robust
@@ -283,6 +307,42 @@
         const Phone = (p) => <Icon name="phone-call" {...p} />;
         const MessageCircle = (p) => <Icon name="message-circle" {...p} />;
         const MessageSquare = (p) => <Icon name="message-square" {...p} />;
+
+        // Inline SVG icons (no lucide dependency) for guaranteed rendering on mobile/desktop
+        const PainIcon = ({ type, className = "" }) => {
+            const common = { className, viewBox: "0 0 24 24", "aria-hidden": "true", focusable: "false" };
+            // thinner stroke for better balance at smaller sizes
+            const stroke = { stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", fill: "none" };
+
+            if (type === "trending") {
+                return (
+                    <svg {...common}>
+                        <path {...stroke} d="M3 17l6-6 4 4 7-7" />
+                        <path {...stroke} d="M14 8h6v6" />
+                    </svg>
+                );
+            }
+            if (type === "users") {
+                return (
+                    <svg {...common}>
+                        {/* two users */}
+                        <path {...stroke} d="M7.5 12a3 3 0 1 0-6 0a3 3 0 0 0 6 0Z" />
+                        <path {...stroke} d="M22.5 12a3 3 0 1 0-6 0a3 3 0 0 0 6 0Z" />
+                        <path {...stroke} d="M1.5 21a6 6 0 0 1 9.5-4.8" />
+                        <path {...stroke} d="M22.5 21a6 6 0 0 0-9.5-4.8" />
+                        <path {...stroke} d="M12 13a3.2 3.2 0 1 0 0.01 0Z" />
+                        <path {...stroke} d="M7 21a5 5 0 0 1 10 0" />
+                    </svg>
+                );
+            }
+            // dollar
+            return (
+                <svg {...common}>
+                    <path {...stroke} d="M12 2v20" />
+                    <path {...stroke} d="M16 6.5c0-1.9-1.8-3.5-4-3.5s-4 1.6-4 3.5S9.8 10 12 10s4 1.6 4 3.5S14.2 17 12 17s-4-1.6-4-3.5" />
+                </svg>
+            );
+        };
 
         const SectionWrapper = ({ children, className = "", id = "" }) => (
             <section id={id} className={`py-20 px-6 md:py-32 md:px-12 overflow-hidden ${className}`}>
@@ -522,72 +582,244 @@
                 <div className="bg-black text-white font-sans selection:bg-orange-500 selection:text-white min-h-screen">
                     {/* Navigation */}
                     <header>
-                        <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? "bg-black/80 backdrop-blur-md border-b border-white/10 py-1.5 md:py-4" : "bg-transparent py-2 md:py-6"}`}>
-                            <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-                                <div className="flex items-center cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-                                    <img 
-                                        src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FTM0lB%2FdJMcaiivdfU%2FAAAAAAAAAAAAAAAAAAAAAIBtCp2d_H35GcKyrIWU0yrsBS53evE1G5EkWcR4REet%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DIS3wBm9uF0mIfLN8Gq3tmuSZuCE%253D" 
-                                        alt="불향기 로고" 
-                                        className="w-[140px] md:w-auto md:h-20 h-auto scale-80 md:scale-100"
-                                        style={{ transform: "scale(0.8)", width: "140px", height: "auto" }}
+                        {/* 오류 체크 네비게이션 영역 */}
+                        <nav
+                            className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+                                scrolled
+                                    ? "bg-black/80 backdrop-blur-md border-b border-white/10 py-1.5 md:py-4"
+                                    : "bg-transparent py-2 md:py-6"
+                            }`}
+                        >
+                            <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative">
+                                <div
+                                    className="flex items-center cursor-pointer"
+                                    onClick={() => {
+                                        if (typeof window !== "undefined" && window.scrollTo) {
+                                            window.scrollTo({ top: 0, behavior: "smooth" });
+                                        } else {
+                                            console.error("window.scrollTo is not available.");
+                                        }
+                                    }}
+                                >
+                                    <img
+                                        src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2Fbsq3Gz%2FdJMb9962SZt%2FAAAAAAAAAAAAAAAAAAAAABDakU87gg9Y3CgW-HfL0AL-J27uNwklg_xqActtfTv_%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DFLdVibRSzrlfkX5KG0I3LMM%252Fe0w%253D"
+                                        alt="불향기 네비로고"
+                                        className="nav-logo opacity-90"
                                         referrerPolicy="no-referrer"
+                                        onError={(e) => {
+                                            e.target.onerror = null;
+                                            e.target.src = "https://placehold.co/100x80/000000/FFF?text=No+Img";
+                                            console.error("네비게이션 로고 이미지 로드 오류");
+                                        }}
                                     />
                                 </div>
-                        
-                                
+
                                 <div className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-widest">
-                                    <button onClick={() => scrollToSection("usp")} className="hover:text-orange-500 transition-colors">수익성</button>
-                                    <button onClick={() => scrollToSection("menu")} className="hover:text-orange-500 transition-colors">메뉴</button>
-                                    <button onClick={() => scrollToSection("system")} className="hover:text-orange-500 transition-colors">운영시스템</button>
-                                    <button onClick={() => scrollToSection("cost")} className="hover:text-orange-500 transition-colors">창업비용</button>
-                                    <button 
-                                        onClick={() => scrollToSection("contact")}
+                                    <button
+                                        onClick={() => {
+                                            try {
+                                                scrollToSection("usp");
+                                            } catch (e) {
+                                                console.error("수익성 섹션으로 스크롤 실패:", e);
+                                            }
+                                        }}
+                                        className="hover:text-orange-500 transition-colors"
+                                    >
+                                        수익성
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            try {
+                                                scrollToSection("menu");
+                                            } catch (e) {
+                                                console.error("메뉴 섹션으로 스크롤 실패:", e);
+                                            }
+                                        }}
+                                        className="hover:text-orange-500 transition-colors"
+                                    >
+                                        메뉴
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            try {
+                                                scrollToSection("system");
+                                            } catch (e) {
+                                                console.error("운영시스템 섹션으로 스크롤 실패:", e);
+                                            }
+                                        }}
+                                        className="hover:text-orange-500 transition-colors"
+                                    >
+                                        운영시스템
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            try {
+                                                scrollToSection("cost");
+                                            } catch (e) {
+                                                console.error("창업비용 섹션으로 스크롤 실패:", e);
+                                            }
+                                        }}
+                                        className="hover:text-orange-500 transition-colors"
+                                    >
+                                        창업비용
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            try {
+                                                scrollToSection("contact");
+                                            } catch (e) {
+                                                console.error("상담신청 섹션으로 스크롤 실패:", e);
+                                            }
+                                        }}
                                         className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-full transition-all transform hover:scale-105 active:scale-95"
                                     >
                                         상담신청
                                     </button>
                                 </div>
-                                {/* 모바일 화면용 햄버거 메뉴 버튼 (오른쪽 위, 흰색) */}
-                                <button 
-                                    className="md:hidden text-white p-2 -mr-2" 
-                                    onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                                    aria-label="Toggle menu"
-                                    style={{ position: "absolute", right: "1.5rem", top: "50%", transform: "translateY(-50%)" }}
+                                {/* 모바일 햄버거 메뉴 버튼 (lucide 실패해도 항상 보이게 SVG 사용) */}
+                                <button
+                                    className="md:hidden text-white p-2 relative z-[60]"
+                                    onClick={() => {
+                                        if (typeof setIsMenuOpen === "function") {
+                                            setIsMenuOpen(!isMenuOpen);
+                                        } else {
+                                            console.error("setIsMenuOpen 함수가 정의되어있지 않음");
+                                        }
+                                    }}
+                                    aria-label="메뉴 열기"
                                 >
-                                    {isMenuOpen ? <X className="w-8 h-8" color="#fff" /> : <Menu className="w-8 h-8" color="#fff" />}
-                                </button>
-                                
-                 
-
-                                <button className="md:hidden text-orange-500 p-2 -mr-2" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
-                                    {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+                                    {isMenuOpen ? (
+                                        <svg viewBox="0 0 24 24" className="w-8 h-8" aria-hidden="true" focusable="false">
+                                            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                                        </svg>
+                                    ) : (
+                                        <svg viewBox="0 0 24 24" className="w-8 h-8" aria-hidden="true" focusable="false">
+                                            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                                        </svg>
+                                    )}
                                 </button>
                             </div>
 
-                            <AnimatePresence>
-                                {isMenuOpen && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: "auto" }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                                        className="absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/10 overflow-hidden md:hidden"
-                                    >
-                                        <div className="p-8 flex flex-col gap-8 text-center font-bold uppercase tracking-[0.2em] text-sm">
-                                            <button onClick={() => scrollToSection("usp")} className="hover:text-orange-500 transition-colors">수익성</button>
-                                            <button onClick={() => scrollToSection("menu")} className="hover:text-orange-500 transition-colors">메뉴</button>
-                                            <button onClick={() => scrollToSection("system")} className="hover:text-orange-500 transition-colors">운영시스템</button>
-                                            <button onClick={() => scrollToSection("cost")} className="hover:text-orange-500 transition-colors">창업비용</button>
-                                            <button 
-                                                onClick={() => scrollToSection("contact")} 
-                                                className="bg-orange-600 py-4 rounded-xl shadow-[0_0_20px_rgba(234,88,12,0.3)] active:scale-95 transition-transform"
+                            {hasMotion ? (
+                                <AnimatePresence>
+                                    {isMenuOpen && (
+                                        <>
+                                            {/* Backdrop */}
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                transition={{ duration: 0.2 }}
+                                                className="fixed inset-0 bg-black/60 md:hidden z-[80]"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            />
+
+                                            {/* Right slide panel */}
+                                            <motion.aside
+                                                initial={{ x: "100%" }}
+                                                animate={{ x: 0 }}
+                                                exit={{ x: "100%" }}
+                                                transition={{ duration: 0.28, ease: [0.21, 0.47, 0.32, 0.98] }}
+                                                className="fixed top-0 right-0 h-[100dvh] w-[82vw] max-w-[360px] bg-black/95 backdrop-blur-xl border-l border-white/10 md:hidden z-[90] flex flex-col"
+                                                onClick={(e) => e.stopPropagation()}
                                             >
-                                                상담신청
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                                <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+                                                    <div className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">Menu</div>
+                                                    <button
+                                                        className="p-2 text-white/80 hover:text-white"
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                        aria-label="닫기"
+                                                    >
+                                                        <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true" focusable="false">
+                                                            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex-1 overflow-y-auto p-6">
+                                                    <div className="flex flex-col gap-4 text-left font-bold uppercase tracking-[0.2em] text-sm">
+                                                        <button
+                                                            onClick={() => {
+                                                                try { scrollToSection("usp"); } catch (e) { console.error("수익성(모바일) 섹션으로 스크롤 실패:", e); }
+                                                            }}
+                                                            className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                                        >
+                                                            수익성
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                try { scrollToSection("menu"); } catch (e) { console.error("메뉴(모바일) 섹션으로 스크롤 실패:", e); }
+                                                            }}
+                                                            className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                                        >
+                                                            메뉴
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                try { scrollToSection("system"); } catch (e) { console.error("운영시스템(모바일) 섹션으로 스크롤 실패:", e); }
+                                                            }}
+                                                            className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                                        >
+                                                            운영시스템
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                try { scrollToSection("cost"); } catch (e) { console.error("창업비용(모바일) 섹션으로 스크롤 실패:", e); }
+                                                            }}
+                                                            className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left"
+                                                        >
+                                                            창업비용
+                                                        </button>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            try { scrollToSection("contact"); } catch (e) { console.error("상담신청(모바일) 섹션으로 스크롤 실패:", e); }
+                                                        }}
+                                                        className="mt-6 w-full bg-orange-600 hover:bg-orange-700 py-4 rounded-2xl shadow-[0_0_20px_rgba(234,88,12,0.3)] active:scale-95 transition-transform font-black"
+                                                    >
+                                                        상담신청
+                                                    </button>
+
+                                                    <a
+                                                        href="tel:010-2208-5540"
+                                                        className="mt-3 block text-center border-2 border-white/60 text-white py-3 rounded-2xl font-black"
+                                                    >
+                                                        바로상담
+                                                    </a>
+                                                </div>
+                                            </motion.aside>
+                                        </>
+                                    )}
+                                </AnimatePresence>
+                            ) : (
+                                // motion or AnimatePresence가 없을 때 graceful fallback
+                                isMenuOpen && (
+                                    <>
+                                        <div className="fixed inset-0 bg-black/60 md:hidden z-[80]" onClick={() => setIsMenuOpen(false)} />
+                                        <aside className="fixed top-0 right-0 h-[100dvh] w-[82vw] max-w-[360px] bg-black/95 backdrop-blur-xl border-l border-white/10 md:hidden z-[90] flex flex-col" onClick={(e)=>e.stopPropagation()}>
+                                            <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+                                                <div className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">Menu</div>
+                                                <button className="p-2 text-white/80 hover:text-white" onClick={() => setIsMenuOpen(false)} aria-label="닫기">
+                                                    <svg viewBox="0 0 24 24" className="w-7 h-7" aria-hidden="true" focusable="false">
+                                                        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto p-6">
+                                                <div className="flex flex-col gap-4 text-left font-bold uppercase tracking-[0.2em] text-sm">
+                                                    <button onClick={() => scrollToSection("usp")} className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left">수익성</button>
+                                                    <button onClick={() => scrollToSection("menu")} className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left">메뉴</button>
+                                                    <button onClick={() => scrollToSection("system")} className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left">운영시스템</button>
+                                                    <button onClick={() => scrollToSection("cost")} className="py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors text-left">창업비용</button>
+                                                </div>
+                                                <button onClick={() => scrollToSection("contact")} className="mt-6 w-full bg-orange-600 hover:bg-orange-700 py-4 rounded-2xl shadow-[0_0_20px_rgba(234,88,12,0.3)] active:scale-95 transition-transform font-black">상담신청</button>
+                                                <a href="tel:010-2208-5540" className="mt-3 block text-center border-2 border-white/60 text-white py-3 rounded-2xl font-black">바로상담</a>
+                                            </div>
+                                        </aside>
+                                    </>
+                                )
+                            )}
                         </nav>
                     </header>
 
@@ -609,7 +841,7 @@
                             <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-orange-600/20 to-transparent pointer-events-none" />
                         </div>
 
-                        <div className="relative z-20 text-center px-6 pb-[100px] md:pb-0 max-w-5xl">
+                        <div className="relative z-20 text-center px-6 pb-[100px] md:pb-0 max-w-5xl mt-[75px] md:mt-0">
                             <FadeIn direction="up" animateOnLoad={true}>
                                 <span className="inline-block bg-orange-600 text-white text-sm md:text-base font-medium px-6 py-2 rounded-full mb-8 tracking-[0.3em] uppercase font-display">
                                     신개념 안주 테이크아웃 전문점
@@ -711,7 +943,6 @@
                                         바로상담
                                     </motion.a>
                                 </div>
-                      
                             </div>
                         </div>
                     </section>
@@ -759,7 +990,6 @@
                                     />
                                 </motion.div>
                             </FadeIn>
-                 
                         </div>
                     </SectionWrapper>
 
@@ -779,9 +1009,9 @@
                         </div>
                         <div className="grid md:grid-cols-3 gap-8">
                             {[
-                                { title: "배달 수수료 폭탄", desc: "팔수록 손해 보는 배달 구조에서 벗어나야 합니다.", icon: TrendingUp },
-                                { title: "구인난 & 인건비", desc: "사람 구하기 힘든 시대, 시스템이 사람을 대신합니다.", icon: Users },
-                                { title: "높은 원재료비", desc: "유통 마진이 붙은 비싼 식재료는 수익의 적입니다.", icon: DollarSign }
+                                { title: "배달 수수료 폭탄", desc: "팔수록 손해 보는 배달 구조에서 벗어나야 합니다.", icon: "trending" },
+                                { title: "구인난 & 인건비", desc: "사람 구하기 힘든 시대, 시스템이 사람을 대신합니다.", icon: "users" },
+                                { title: "높은 원재료비", desc: "유통 마진이 붙은 비싼 식재료는 수익의 적입니다.", icon: "dollar" }
                             ].map((item, i) => (
                                 <FadeIn key={i} delay={i * 0.1} direction="up">
                                     <motion.div 
@@ -790,9 +1020,9 @@
                                     >
                                         <div className="absolute -right-4 -top-4 w-32 h-32 bg-orange-600/10 rounded-full blur-3xl group-hover:bg-orange-600/20 transition-all" />
                                         <div className="relative z-10 flex justify-center items-center mb-6">
-                                            <item.icon 
-                                                className="w-32 h-32 md:w-40 md:h-40 text-orange-200 group-hover:scale-110 transition-transform drop-shadow-[0_0_25px_rgba(255,255,200,0.5)]"
-                                                strokeWidth={2.5}
+                                            <PainIcon
+                                                type={item.icon}
+                                                className="w-12 h-12 sm:w-14 sm:h-14 md:w-32 md:h-32 text-orange-500 group-hover:scale-110 transition-transform drop-shadow-[0_0_20px_rgba(255,138,0,0.5)]"
                                             />
                                         </div>
                                         <h3 className="text-2xl font-display mb-4 text-center">{item.title}</h3>
@@ -804,7 +1034,7 @@
                     </SectionWrapper>
 
                     {/* USP 1 */}
-                    <SectionWrapper id="usp" className="bg-black relative">
+                    <SectionWrapper id="performance" className="bg-black relative">
                         <div className="grid md:grid-cols-2 gap-16 items-center">
                             <FadeIn direction="right">
                                 <div className="relative rounded-3xl overflow-hidden aspect-square md:aspect-video group">
@@ -839,7 +1069,7 @@
                     </SectionWrapper>
 
                     {/* USP 2 */}
-                    <SectionWrapper className="bg-orange-600 text-white relative">
+                    <SectionWrapper id="usp" className="bg-orange-600 text-white relative">
                         <div className="absolute inset-0 opacity-30 pointer-events-none overflow-hidden">
                             <div className="absolute -top-20 -left-20 text-[20rem] font-display text-[#001F3F]/40 select-none"><Counter value={37} />%</div>
                             <div className="absolute -bottom-20 -right-20 text-[20rem] font-display text-[#001F3F]/40 select-none"><Counter value={33} />%</div>
@@ -954,106 +1184,6 @@
                         </div>
                     </SectionWrapper>
 
-                    {/* Marketing */}
-                    <SectionWrapper className="bg-white text-black">
-                        <div className="flex flex-col md:flex-row items-center gap-16">
-                            <FadeIn className="md:w-1/2">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-4">
-                                        <div className="bg-gray-100 p-6 rounded-3xl aspect-square flex flex-col justify-end">
-                                            <div className="text-3xl font-black text-orange-600">SNS</div>
-                                            <div className="text-xs font-bold text-black/40 uppercase tracking-widest">마케팅</div>
-                                        </div>
-                                        <div className="bg-black p-6 rounded-3xl aspect-[3/4] flex flex-col justify-end text-white">
-                                            <div className="text-3xl font-black">지역</div>
-                                            <div className="text-xs font-bold text-white/40 uppercase tracking-widest">타겟팅</div>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4 pt-8">
-                                        <div className="bg-orange-600 p-6 rounded-3xl aspect-[3/4] flex flex-col justify-end text-white">
-                                            <div className="text-3xl font-black">리얼</div>
-                                            <div className="text-xs font-bold text-white/40 uppercase tracking-widest">리뷰</div>
-                                        </div>
-                                        <div className="bg-gray-100 p-6 rounded-3xl aspect-square flex flex-col justify-end">
-                                            <div className="text-3xl font-black text-orange-600">본사</div>
-                                            <div className="text-xs font-bold text-black/40 uppercase tracking-widest">지원</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </FadeIn>
-                            <FadeIn delay={0.2} className="md:w-1/2">
-                                <div className="space-y-6">
-                                    <span className="text-orange-600 font-black tracking-widest uppercase text-sm">마케팅 경쟁력</span>
-                                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">
-                                        마케팅, 점주님께 맡기지 않습니다.<br />
-                                        <span className="text-orange-500">본사가 직접 뜁니다.</span>
-                                    </h2>
-                                    <p className="text-lg text-black/60 leading-relaxed">
-                                        지역 거점 1호점을 위한 본사 마케팅팀의 실시간 광고 세팅 및 관리 지원.<br />
-                                        오픈 전부터 지역 내 맛집으로 소문날 수 있도록<br />
-                                        <span className="text-black font-bold">검증된 마케팅 로드맵을 그대로 적용해 드립니다.</span>
-                                    </p>
-                                </div>
-                            </FadeIn>
-                        </div>
-                    </SectionWrapper>
-
-                    {/* Profit Data */}
-                    <SectionWrapper className="bg-black">
-                        <div className="bg-gray-900 rounded-[48px] p-10 md:p-20 border border-white/5 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-10 opacity-10">
-                                <TrendingUp className="w-64 h-64 text-orange-500" />
-                            </div>
-                            <div className="relative z-10">
-                                <FadeIn direction="down">
-                                    <h2 className="text-5xl md:text-8xl font-display tracking-tighter mb-12">
-                                        <RevealText text="숫자로 증명하는" className="justify-center" />
-                                        {' '}압도적 <span className="bg-fire-gradient text-emphasis-dots">수익성</span>
-                                    </h2>
-                            
-                                    <div className="grid md:grid-cols-2 gap-12 items-center">
-                                        <div className="space-y-8">
-                                            <div className="flex justify-between items-end border-b border-white/10 pb-4">
-                                                <div className="text-white/50 font-bold">월 매출 (일 100만 기준)</div>
-                                                <div className="text-3xl font-black whitespace-nowrap">3,000만 원</div>
-                                            </div>
-                                            <div className="flex justify-between items-end border-b border-white/10 pb-4">
-                                                <div className="text-white/50 font-bold">식자재비 (33%)</div>
-                                                <div className="text-2xl font-black text-red-500">- 990만 원</div>
-                                            </div>
-                                            <div className="flex justify-between items-end border-b border-white/10 pb-4">
-                                                <div className="text-white/50 font-bold">임대료/공과금/기타</div>
-                                                <div className="text-2xl font-black text-red-500">- 900만 원</div>
-                                            </div>
-                                            <div className="flex justify-between items-end pt-4">
-                                                <div className="text-orange-500 text-xl font-black">월 예상 순수익 (37%)</div>
-                                                <div className="text-5xl font-black text-orange-500 whitespace-nowrap">1,110만 원</div>
-                                            </div>
-                                        </div>
-                                        <div className="bg-black p-8 rounded-3xl border border-orange-500/20">
-                                            <p className="text-white/70 italic leading-relaxed mb-6">
-                                                "단순히 많이 파는 것이 목표가 아닙니다. 적게 팔아도 사장님이 가져가는 돈이 많아야 진짜 사업입니다. 불향기는 그 본질에 집중했습니다."
-                                            </p>
-                                            <div className="flex items-center gap-4">
-                                                <img
-                                                    src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbwhhFd%2FdJMcaiW4vsy%2FAAAAAAAAAAAAAAAAAAAAAC9rW87qpYg1Tb98s9xR7cq5acHIngS-rvLyZz8DoNJW%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DZMdPqSIN%252F8YNTyS1To9%252FYeSwzac%253D"
-                                                    alt="불향기 로고"
-                                                    className="w-12 h-12 rounded-full object-cover bg-orange-600"
-                                                    referrerPolicy="no-referrer"
-                                                />
-                                          
-                                                <div>
-                                                    <div className="font-black">불향기 대표</div>
-                                                    <div className="text-xs text-white/40"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </FadeIn>
-                            </div>
-                        </div>
-                    </SectionWrapper>
-
                     {/* Cost */}
                     <SectionWrapper id="cost" className="bg-white text-black">
                         <div className="text-center max-w-3xl mx-auto mb-20">
@@ -1079,18 +1209,20 @@
                                             { label: "교육비", price: "100만 원", desc: "실전 조리 및 운영 교육" },
                                             { label: "상호사용료", price: "200만 원", desc: "브랜드 사용 및 마케팅 지원" }
                                         ].map((item, i) => (
-                                            <li key={i} className="flex justify-between items-center">
+                                            <li key={i} className="flex justify-between items-center gap-4">
                                                 <div>
                                                     <div className="font-black text-xl">{item.label}</div>
                                                     <div className="text-sm text-black/40 font-bold">{item.desc}</div>
                                                 </div>
-                                                <div className="text-2xl font-black text-orange-600">{item.price}</div>
+                                                <div className="text-2xl font-black text-orange-600 whitespace-nowrap">{item.price}</div>
                                             </li>
                                         ))}
                                     </ul>
-                                    <div className="mt-12 pt-8 border-t border-black/10 flex justify-between items-center">
-                                        <div className="text-sm font-black uppercase tracking-widest">총 창업비용</div>
-                                        <div className="text-4xl font-black">300만 원</div>
+                                    <div className="mt-12 pt-8 border-t border-black/10 flex justify-between items-center gap-4">
+                                        <div className="font-black uppercase tracking-widest text-center leading-tight whitespace-nowrap" style={{ fontSize: "130%" }}>
+                                            총<br />창업비용
+                                        </div>
+                                        <div className="text-4xl font-black whitespace-nowrap">300만 원</div>
                                     </div>
                                 </div>
                             </FadeIn>
@@ -1121,40 +1253,6 @@
                         </div>
                     </SectionWrapper>
 
-                    {/* Roadmap */}
-                    <SectionWrapper className="bg-black">
-                        <div className="mb-20">
-                            <FadeIn direction="down">
-                                <h2 className="text-4xl md:text-6xl font-display tracking-tighter mb-4">
-                                    <div className="flex justify-start">
-                                        <RevealText text="실패 없는" />
-                                    </div>
-                                    <div className="flex justify-center">
-                                        <span className="bg-fire-gradient block mt-2">성공 로드맵</span>
-                                    </div>
-                                </h2>
-                                <p className="text-center text-white/50 font-bold text-lg">상담부터 오픈까지, 전문가가 함께합니다. #불향기창업상담</p>
-                            </FadeIn>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                            {[
-                                { step: "01", title: "창업 상담", desc: "1:1 맞춤 컨설팅" },
-                                { step: "02", title: "시식 및 미팅", desc: "대표 직접 시식 진행" },
-                                { step: "03", title: "상권 분석", desc: "최적의 입지 선정" },
-                                { step: "04", title: "실전 교육", desc: "운영 노하우 전수" },
-                                { step: "05", title: "그랜드 오픈", desc: "본사 밀착 지원" }
-                            ].map((item, i) => (
-                                <FadeIn key={i} delay={i * 0.1}>
-                                    <div className="bg-gray-900 p-8 rounded-3xl border border-white/5 text-center h-full flex flex-col justify-center">
-                                        <div className="text-orange-600 font-black mb-2">{item.step}</div>
-                                        <h4 className="text-xl font-black mb-2">{item.title}</h4>
-                                        <p className="text-xs text-white/40 font-bold">{item.desc}</p>
-                                    </div>
-                                </FadeIn>
-                            ))}
-                        </div>
-                    </SectionWrapper>
-
                     {/* Contact */}
                     <SectionWrapper id="contact" className="bg-orange-600 text-white">
                         <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -1179,31 +1277,10 @@
                             <FadeIn delay={0.2}>
                                 <div className="bg-white text-black p-10 rounded-[40px] shadow-2xl">
                                     <form className="space-y-6" onSubmit={handleSubmit}>
-                                        <input 
-                                            name="name"
-                                            type="text" 
-                                            placeholder="성함" 
-                                            required
-                                            className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" 
-                                        />
-                                        <input 
-                                            name="location"
-                                            type="text" 
-                                            placeholder="창업희망지역" 
-                                            required
-                                            className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" 
-                                        />
-                                        <input 
-                                            name="phone"
-                                            type="tel" 
-                                            placeholder="연락처" 
-                                            required
-                                            className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" 
-                                        />
-                                        <button 
-                                            disabled={isSubmitting}
-                                            className="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl disabled:opacity-50"
-                                        >
+                                        <input name="name" type="text" placeholder="성함" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" />
+                                        <input name="location" type="text" placeholder="창업희망지역" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" />
+                                        <input name="phone" type="tel" placeholder="연락처" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" />
+                                        <button disabled={isSubmitting} className="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl disabled:opacity-50">
                                             {isSubmitting ? "처리 중..." : "무료 창업 상담 신청하기"}
                                         </button>
                                     </form>
@@ -1220,14 +1297,12 @@
                                     <img 
                                         src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FTM0lB%2FdJMcaiivdfU%2FAAAAAAAAAAAAAAAAAAAAAIBtCp2d_H35GcKyrIWU0yrsBS53evE1G5EkWcR4REet%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DIS3wBm9uF0mIfLN8Gq3tmuSZuCE%253D" 
                                         alt="불향기 로고" 
-                                        className="h-6 w-auto"
+                                        className="h-[5rem] w-auto"
                                         referrerPolicy="no-referrer"
                                     />
                                 </div>
-                                
                                 <div className="space-y-4">
                                     <button className="text-white/80 text-sm font-bold hover:text-white transition-colors">개인정보처리방침</button>
-                                    
                                     <div className="flex flex-wrap gap-x-4 gap-y-2 text-white/40 text-xs font-medium leading-relaxed">
                                         <span className="flex gap-2">상호 <span className="text-white/60">불향기</span></span>
                                         <span className="hidden md:inline text-white/10">|</span>
@@ -1236,39 +1311,20 @@
                                         <span className="flex gap-2">사업자등록번호 <span className="text-white/60">264-03-01360</span></span>
                                         <span className="hidden md:inline text-white/10">|</span>
                                         <span className="flex gap-2">주소 <span className="text-white/60">경기도 광주시 오포읍 수렁개길29번길 3, 1층</span></span>
-                                        <span className="hidden md:inline text-white/10">|</span>
-                                        <span className="flex gap-2">대표전화 <span className="text-white/60">1555-2839</span></span>
                                     </div>
-                                    
                                     <p className="text-white/20 text-[10px] tracking-wider uppercase">COPYRIGHT(C) 불향기 ALL RIGHT RESERVED.</p>
                                 </div>
                             </div>
                         </div>
                     </footer>
 
-                    {/* Floating Kakao - Removed as it's now handled by direct script injection */}
-
                     {/* Sticky Bottom Consultation Banner */}
                     <div className="fixed bottom-0 left-0 w-full bg-red-600 z-[70] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-                        {/* PC View (lg and up) */}
                         <div className="hidden lg:block py-3 px-4 border-t border-white/10">
                             <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-                                {/* Form Fields */}
                                 <form className="flex items-center justify-center gap-2 flex-1" onSubmit={handleSubmit}>
-                                    <input 
-                                        type="text" 
-                                        name="name"
-                                        required
-                                        placeholder="성함" 
-                                        className="bg-white/10 border border-white/30 text-white placeholder:text-white/60 px-4 py-2 rounded-md focus:outline-none focus:bg-white/20 flex-1 max-w-[150px] text-sm font-bold"
-                                    />
-                                    <input 
-                                        type="tel" 
-                                        name="phone"
-                                        required
-                                        placeholder="연락처('-'없이 숫자만)" 
-                                        className="bg-white/10 border border-white/30 text-white placeholder:text-white/60 px-4 py-2 rounded-md focus:outline-none focus:bg-white/20 flex-1 max-w-[200px] text-sm font-bold"
-                                    />
+                                    <input type="text" name="name" required placeholder="성함" className="bg-white/10 border border-white/30 text-white placeholder:text-white/60 px-4 py-2 rounded-md focus:outline-none focus:bg-white/20 flex-1 max-w-[150px] text-sm font-bold" />
+                                    <input type="tel" name="phone" required placeholder="연락처('-'없이 숫자만)" className="bg-white/10 border border-white/30 text-white placeholder:text-white/60 px-4 py-2 rounded-md focus:outline-none focus:bg-white/20 flex-1 max-w-[200px] text-sm font-bold" />
                                     <select name="location" required className="bg-white/10 border border-white/30 text-white px-4 py-2 rounded-md focus:outline-none focus:bg-white/20 flex-1 max-w-[150px] text-sm font-bold appearance-none">
                                         <option className="text-black" value="">창업희망지역</option>
                                         <option className="text-black" value="seoul">서울/경기</option>
@@ -1276,13 +1332,12 @@
                                         <option className="text-black" value="daegu">대구/경북</option>
                                         <option className="text-black" value="etc">기타지역</option>
                                     </select>
-                                    
                                     <div className="flex items-center gap-2 px-2">
                                         <input type="checkbox" id="privacy-sticky-pc" required className="accent-black w-4 h-4" />
                                         <label htmlFor="privacy-sticky-pc" className="text-xs text-white/80 font-bold cursor-pointer">개인정보 취급방침 동의</label>
                                     </div>
 
-                                    <motion.button 
+                                    <motion.button
                                         type="submit"
                                         disabled={isSubmitting}
                                         whileHover={{ scale: 1.05, backgroundColor: "#000" }}
@@ -1293,80 +1348,40 @@
                                     </motion.button>
                                 </form>
 
-                                {/* 바로상담 Button (Moved to Right) */}
-                                <motion.a 
-                                    href="tel:010-2208-5540"
-                                    whileHover={{ scale: 1.02 }}
-                                    className="flex items-center justify-center text-white border-2 border-white px-8 py-2 rounded-md whitespace-nowrap"
-                                >
+                                <motion.a href="tel:010-2208-5540" whileHover={{ scale: 1.02 }} className="flex items-center justify-center text-white border-2 border-white px-8 py-2 rounded-md whitespace-nowrap">
                                     <span className="text-2xl font-sans font-medium tracking-tighter">바로상담</span>
                                 </motion.a>
                             </div>
                         </div>
 
-                        {/* Mobile View (under lg) */}
                         <div className="lg:hidden flex items-center">
-                            <button 
-                                onClick={() => setIsMobileFormOpen(true)}
-                                className="flex-1 bg-red-600 text-white py-5 text-xl font-sans font-medium tracking-tighter shadow-lg flex items-center justify-center"
-                            >
+                            <button onClick={() => setIsMobileFormOpen(true)} className="flex-1 bg-red-600 text-white py-5 text-xl font-sans font-medium tracking-tighter shadow-lg flex items-center justify-center">
                                 가맹문의 상담신청
                             </button>
-                            <motion.a 
-                                href="tel:010-2208-5540"
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-white text-red-600 px-6 py-5 text-xl font-black border-l border-red-500"
-                            >
+                            <motion.a href="tel:010-2208-5540" whileTap={{ scale: 0.95 }} className="bg-white text-red-600 px-6 py-5 text-xl font-black border-l border-red-500">
                                 바로상담
                             </motion.a>
                         </div>
                     </div>
 
-                    {/* Mobile Form Modal/Overlay */}
                     <AnimatePresence>
                         {isMobileFormOpen && (
-                            <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6 lg:hidden"
-                            >
-                                <motion.div 
-                                    initial={{ scale: 0.9, y: 20 }}
-                                    animate={{ scale: 1, y: 0 }}
-                                    exit={{ scale: 0.9, y: 20 }}
-                                    className="bg-white text-black w-full max-w-md rounded-[40px] p-8 relative"
-                                >
-                                    <button 
-                                        onClick={() => setIsMobileFormOpen(false)}
-                                        className="absolute top-6 right-6 text-black/40 hover:text-black"
-                                    >
-                                        <X className="w-8 h-8" />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6 lg:hidden">
+                                <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white text-black w-full max-w-md rounded-[40px] p-8 relative">
+                                    <button onClick={() => setIsMobileFormOpen(false)} className="absolute top-6 right-6 text-black/40 hover:text-black" aria-label="닫기">
+                                        <svg viewBox="0 0 24 24" className="w-8 h-8" aria-hidden="true" focusable="false">
+                                            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                                        </svg>
                                     </button>
-                                    
+
                                     <div className="text-center mb-8">
                                         <h3 className="text-3xl font-display mb-2">가맹문의 상담신청</h3>
                                         <p className="text-black/60 text-sm font-bold">정보를 입력하시면 전문가가 연락드립니다.</p>
                                     </div>
 
-                                    <form className="space-y-4" onSubmit={async (e) => {
-                                        await handleSubmit(e);
-                                        setIsMobileFormOpen(false);
-                                    }}>
-                                        <input 
-                                            name="name"
-                                            type="text" 
-                                            placeholder="성함" 
-                                            required
-                                            className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" 
-                                        />
-                                        <input 
-                                            name="phone"
-                                            type="tel" 
-                                            placeholder="연락처" 
-                                            required
-                                            className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" 
-                                        />
+                                    <form className="space-y-4" onSubmit={async (e) => { await handleSubmit(e); setIsMobileFormOpen(false); }}>
+                                        <input name="name" type="text" placeholder="성함" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" />
+                                        <input name="phone" type="tel" placeholder="연락처" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold" />
                                         <select name="location" required className="w-full bg-gray-100 border-none rounded-2xl p-4 font-bold appearance-none">
                                             <option value="">창업희망지역</option>
                                             <option value="seoul">서울/경기</option>
@@ -1374,16 +1389,11 @@
                                             <option value="daegu">대구/경북</option>
                                             <option value="etc">기타지역</option>
                                         </select>
-                                        
                                         <div className="flex items-center gap-2 px-2">
                                             <input type="checkbox" id="privacy-mobile" required className="accent-orange-600 w-4 h-4" />
                                             <label htmlFor="privacy-mobile" className="text-xs text-black/60 font-bold cursor-pointer">개인정보 취급방침 동의</label>
                                         </div>
-
-                                        <button 
-                                            disabled={isSubmitting}
-                                            className="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl disabled:opacity-50"
-                                        >
+                                        <button disabled={isSubmitting} className="w-full bg-orange-600 text-white font-black py-5 rounded-2xl shadow-xl disabled:opacity-50">
                                             {isSubmitting ? "처리 중..." : "무료 상담 신청하기"}
                                         </button>
                                     </form>
