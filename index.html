@@ -791,22 +791,22 @@
                                 </FadeIn>
                             </div>
                             <div className="grid md:grid-cols-3 gap-8">
-                                {[
-                                    { name: "불향 양념 막창", tag: "BEST", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FXURqp%2FdJMcaa5XqLP%2FAAAAAAAAAAAAAAAAAAAAAH0pp9yWcfe01aRXNIXVopwvpsIy1_GhnvYipU0Vc1VZ%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DgYN4v9XT7tHCVxXCmETfAf7rUQs%253D" },
-                                    { name: "불향 양념 곱창", tag: "SPICY", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbFrJEO%2FdJMcajhtnoa%2FAAAAAAAAAAAAAAAAAAAAAGeMxt60WjzbVevUXg-Klt379xF8EjLEWZBjoBCmjM72%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3Dbn6SrPS2UlUGbLEwdundBS%252BS%252F5s%253D" },
-                                    { name: "불향 모듬 세트", tag: "NEW", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2F9wQI9%2FdJMcaiv6NCT%2FAAAAAAAAAAAAAAAAAAAAACrLnXhnPU17v56oaiq2WuKq6oJozzPQnU7xeUsw1CHt%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DRLPRuXHCwAFVP%252BbKkilp5JdXSvo%253D" }
-                                ].map((item, i) => (
-                                    <FadeIn key={i} delay={i * 0.1}>
-                                        <div className="group relative rounded-3xl overflow-hidden aspect-[3/4] cursor-pointer">
-                                            <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
-                                            <div className="absolute bottom-8 left-8 right-8">
-                                                <h3 className="text-2xl font-black mb-2">{item.name}</h3>
-                                            </div>
+                            {[
+                                { name: "불향 양념 막창", tag: "BEST", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FcRI0R6%2FdJMcagevstg%2FAAAAAAAAAAAAAAAAAAAAAPGqqx55_KI1NvxRy5LyOJvukgPBzmvMD7Lhr2ISpglq%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1782831599%26allow_ip%3D%26allow_referer%3D%26signature%3D2QUdX2e%252FoRA%252B4Nuf%252FH2einUIzpU%253D" },
+                                { name: "불향 양념 곱창", tag: "SPICY", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2Fdap3VV%2FdJMcagevssL%2FAAAAAAAAAAAAAAAAAAAAAE2aMTbUN_UiuFdjtXvwc9hqOf67c6yAJneHYXyiHjX8%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1780239599%26allow_ip%3D%26allow_referer%3D%26signature%3D%252Bh7JhhIc%252FOm%252FPhRnB43vSYpHinE%253D" },
+                                { name: "불향 오돌갈비살", tag: "NEW", img: "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbbElPp%2FdJMcabYAkar%2FAAAAAAAAAAAAAAAAAAAAANgQ4I2aH7EaNfFl0cpo4w0kzN_DAUGEuoqnI282-lGy%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1782831599%26allow_ip%3D%26allow_referer%3D%26signature%3D5B4AFf4luTBjhP4SxYP%252Bx9kWxQY%253D" }
+                            ].map((item, i) => (
+                                <FadeIn key={i} delay={i * 0.1}>
+                                    <div className="group relative rounded-3xl overflow-hidden aspect-[3/4] cursor-pointer">
+                                        <img src={item.img} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
+                                        <div className="absolute bottom-8 left-8 right-8">
+                                            <h3 className="text-2xl font-light mb-2">{item.name}</h3>
                                         </div>
-                                    </FadeIn>
-                                ))}
-                            </div>
+                                    </div>
+                                </FadeIn>
+                            ))}
+                        </div>
                         </SectionWrapper>
 
                         {/* System */}
