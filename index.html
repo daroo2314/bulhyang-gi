@@ -486,12 +486,13 @@
                 
                 const loader = document.getElementById('loading-screen');
                 const kakaoBtn = document.getElementById('kakao-chat-container');
+                const isMobile = window.matchMedia('(max-width: 1023px)').matches;
                 if (loader) {
                     setTimeout(() => {
                         loader.style.opacity = '0';
                         setTimeout(() => {
                             loader.style.display = 'none';
-                            if (kakaoBtn) {
+                            if (kakaoBtn && isMobile) {
                                 kakaoBtn.style.opacity = '1';
                                 kakaoBtn.style.pointerEvents = 'auto';
                             }
@@ -1410,25 +1411,8 @@
             `;
         }
     </script>
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.7/kakao.min.js" integrity="sha384-tJkjbtDbvoxO+diRuDtwRO9JXR7pjWnfjfRn5ePUpl7e7RJCxKCwwnfqUAdXh53p" crossorigin="anonymous"></script>
-    <script>
-      if (window.Kakao && !Kakao.isInitialized()) {
-        Kakao.init('7a067c7d1fa99f84b13c2a2fb42c63ea');
-      }
-
-      function chatChannel() {
-        if (!Kakao.isInitialized()) {
-          console.error('카카오 SDK가 초기화되지 않았습니다.');
-          return;
-        }
-        Kakao.Channel.chat({
-          channelPublicId: '_ZjWMX'
-        });
-      }
-    </script>
-
     <div id="kakao-chat-container" class="kakao-float" style="position:fixed; bottom:90px; right:20px; z-index:9999; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out, transform 0.2s ease-in-out;">
-      <a href="javascript:chatChannel()">
+      <a href="https://pf.kakao.com/_ZjWMX/chat" target="_blank" rel="noopener noreferrer" aria-label="카카오톡 채널 상담">
         <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FbamAXI%2FdJMb9962l4a%2FAAAAAAAAAAAAAAAAAAAAAKxNKUxx1dfG2qW8VzSDMqIPWwCQE5j79vDidtVl1iqH%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1777561199%26allow_ip%3D%26allow_referer%3D%26signature%3DbOXsxhq3RdKTiwSunj3QTj63yVg%253D" 
              alt="불향기 카톡상담" 
              style="width:80px; height:auto; border-radius:12px; box-shadow: 0 3px 10px rgba(0,0,0,0.3); transition: transform 0.2s ease-in-out;"
@@ -1438,7 +1422,7 @@
 
     <style>
       @media (min-width: 1024px) {
-        #kakao-chat-container { bottom: 110px; }
+        #kakao-chat-container { display: none !important; }
       }
     </style>
 </body>
