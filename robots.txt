@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# 검색엔진 사이트맵 안내
+Sitemap: https://xn--ok0bz40aehs.kr/sitemap.xml
